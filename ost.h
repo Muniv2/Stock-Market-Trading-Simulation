@@ -79,4 +79,35 @@ class OST {
         void updateHeight ( OSTNode * node ) ;
         int getBalanceFactor ( OSTNode * node ) ; // Checks if left/right are heavy
         void rebalance ( OSTNode *& node ) ;      // Performs rotations if needed
+        void rotateLeft(OSTNode* node);
+        void rotateRight(OSTNode* node);
+
+    };
+
+
+// Trader Profile Class
+class TraderProfile {
+private:
+    string name;
+    string role;
+    int budget;
+    int inventory;
+    int profitLoss;
+    int portfolioValue;
+public:
+    TraderProfile();
+    TraderProfile(string n, string r, int b, int inv, int pl, int pv);
+    string getName() const;
+    string getRole() const;
+    int getBudget() const;
+    int getInventory() const;
+    int getProfitLoss() const;
+    int getPortfolioValue() const;
+    void setName(string n);
+    void setRole(string r);
+    void setBudget(int b);
+    void setInventory(int inv);
+    void setProfitLoss(int pl);
+    void setPortfolioValue(int pv);
 };
+
