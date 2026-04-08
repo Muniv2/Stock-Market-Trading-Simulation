@@ -82,6 +82,8 @@ class OST {
         void rotateLeft(OSTNode* node);
         void rotateRight(OSTNode* node);
 
+        void insert ( OSTNode * node ) ;
+        OSTNode * select ( OSTNode * node , int k ) ;
     };
 
 
@@ -110,4 +112,28 @@ public:
     void setProfitLoss(int pl);
     void setPortfolioValue(int pv);
 };
+
+class TradeRecord {
+    private :
+        long long timestamp ;
+        int price ;
+        int quantity ;
+        string buyerName ;
+        string sellerName ;
+
+    public :
+        TradeRecord () ;
+        TradeRecord ( long long ts , int p , int q , string b , string s ) ;
+        long long getTimestamp () const ;
+        int getPrice () const ;
+        int getQuantity () const ;
+        string getBuyerName () const ;
+        string getSellerName () const ;
+        void setTimestamp ( long long ts ) ;
+        void setPrice (int p ) ;
+        void setQuantity (int q ) ;
+        void setBuyerName ( string b ) ;
+        void setSellerName ( string s ) ;
+};
+
 
