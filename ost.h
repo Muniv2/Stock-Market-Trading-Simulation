@@ -84,7 +84,13 @@ class OST {
 
         void insert ( OSTNode * node ) ;
         OSTNode * select ( OSTNode * node , int k ) ;
-    };
+
+        OSTNode * findNode (int key , string name = "") ;
+        void deleteNode ( OSTNode * node ) ;
+        int rank ( OSTNode * node , int key ) ;
+        int rangeCount (int x , int y ) ;
+        
+};
 
 
 // Trader Profile Class
