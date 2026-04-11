@@ -64,3 +64,60 @@ rotateRight ( node -> right ) ;
 rotateLeft ( node ) ;
 }
 }
+
+// ===== AMMAR: TraderProfile Class Implementation =====
+TraderProfile::TraderProfile() : name(""), role(""), budget(0),
+                                 inventory(0), profitLoss(0),
+                                 portfolioValue(0) {}
+
+TraderProfile::TraderProfile(string n, string r, int b, int inv, int pl, int pv)
+    : name(n), role(r), budget(b), inventory(inv), profitLoss(pl), portfolioValue(pv) {}
+
+string TraderProfile::getName() const { return name; }
+string TraderProfile::getRole() const { return role; }
+int TraderProfile::getBudget() const { return budget; }
+int TraderProfile::getInventory() const { return inventory; }
+int TraderProfile::getProfitLoss() const { return profitLoss; }
+int TraderProfile::getPortfolioValue() const { return portfolioValue; }
+
+void TraderProfile::setName(string n) { if (!n.empty()) name = n; }
+void TraderProfile::setRole(string r) { if (!r.empty()) role = r; }
+void TraderProfile::setBudget(int b) { if (b >= 0) budget = b; }
+void TraderProfile::setInventory(int inv) { if (inv >= 0) inventory = inv; }
+void TraderProfile::setProfitLoss(int pl) { profitLoss = pl; }
+void TraderProfile::setPortfolioValue(int pv) { if (pv >= 0) portfolioValue = pv; }
+
+// ===== AMMAR: Rotation Methods Implementation =====
+void OST::rotateLeft(OSTNode* node) {
+    OSTNode* temp = node->right;
+    node->right = temp->left;
+    if (temp->left) temp->left->parent = node;
+    temp->parent = node->parent;
+    if (!node->parent) root = temp;
+    else if (node == node->parent->left) node->parent->left = temp;
+    else node->parent->right = temp;
+    temp->left = node;
+    node->parent = temp;
+    updateSize(node);
+    updateSize(temp);
+    // CRITICAL: Update heights after rotation for AVL rebalancing
+    updateHeight(node);
+    updateHeight(temp);
+}
+
+void OST::rotateRight(OSTNode* node) {
+    OSTNode* temp = node->left;
+    node->left = temp->right;
+    if (temp->right) temp->right->parent = node;
+    temp->parent = node->parent;
+    if (!node->parent) root = temp;
+    else if (node == node->parent->right) node->parent->right = temp;
+    else node->parent->left = temp;
+    temp->right = node;
+    node->parent = temp;
+    updateSize(node);
+    updateSize(temp);
+    // CRITICAL: Update heights after rotation for AVL rebalancing
+    updateHeight(node);
+    updateHeight(temp);
+}
