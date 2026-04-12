@@ -211,3 +211,87 @@ void TradeRecord :: setBuyerName ( string b ) { if (! b . empty () )
 buyerName = b ; }
 void TradeRecord :: setSellerName ( string s ) { if (! s . empty () )
 sellerName = s ; }
+
+//Query Methods Implementation 
+OSTNode * OST :: findNode (int key , string name ) {
+    if (!root) return nullptr;
+    //use BST property to navigate to the correct price level (O(log n))
+    OSTNode * curr = root;
+    while (curr && curr->key != key) {
+        if (key < curr->key) curr = curr->left;
+        else curr = curr->right;
+    }
+    if (!curr || curr->key != key) return nullptr;
+// Once we find a node with the matching price, we use BFS to search nearby nodes for the specific trader name, 
+//since orders with the same price can be spread around due to timestamp tiebreaking.
+    queue <OSTNode *> q;
+    q.push(curr);
+    while (!q.empty()) {
+        OSTNode * node = q.front();
+        q.pop();
+        if (node->key == key && node->nodeType == ORDER_NODE &&
+            node->order.getTraderName() == name) {
+            return node;
+        }
+         // Only explore children if they might contain key = price
+        if (node->left && node->left->key == key) q.push(node->left);
+        if (node->right && node->right->key == key) q.push(node->right);
+    }
+    return nullptr;
+}
+
+void OST :: deleteNode (OSTNode * node) {
+    if (!node) return;
+    if (node->left && node->right) {
+        OSTNode * successor = getMin(node->right);
+        node->key = successor->key;
+        deleteNode(successor);
+        return;
+    }
+    OSTNode * child = (node->left) ? node->left : node->right;
+    OSTNode * parent = node->parent;
+    if (child) child->parent = parent;
+    if (!parent) root = child;
+    else if (node == parent->left) parent->left = child;
+    else parent->right = child;
+    totalNodes--;
+    delete node;
+    OSTNode * ancestor = parent;
+    while (ancestor) {
+        OSTNode * nextAncestor = ancestor->parent; // Save before rebalancing
+        updateSize(ancestor);
+        updateHeight(ancestor);
+        rebalance(ancestor);
+        ancestor = nextAncestor;
+    }
+    // Update root reference in case rotations changed it
+    if (root) {
+        while (root->parent) root = root->parent;
+    }
+}
+
+int OST :: rank (OSTNode * node , int key) {
+    if (!node) return 0;
+    if (key < node->key) return rank(node->left, key);
+    return 1 + getSize(node->left) + rank(node->right, key);
+}
+
+int OST :: rangeCount (int x , int y) {
+    return rank(root, y) - rank(root, x - 1);
+}
+
+OSTNode * OST :: select (OSTNode * node , int k) {
+    if (!node) return nullptr;
+    int leftSize = getSize(node->left);
+    if (k == leftSize + 1) return node;
+    if (k <= leftSize) return select(node->left, k);
+    return select(node->right, k - leftSize - 1);
+}
+
+
+
+
+
+
+
+
