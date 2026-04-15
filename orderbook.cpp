@@ -56,3 +56,35 @@ return true ;
 }
 return false ;
 }
+
+
+// AMMAR: Sell-Side Implementation 
+void OrderBook::placeSellOrder(int price, int quantity, string traderName) {
+    OSTNode* node = new OSTNode(price, ORDER_NODE);
+    node->order.setPrice(price);
+    node->order.setQuantity(quantity);
+    node->order.setTraderName(traderName);
+    node->order.setTimestamp(time(nullptr));
+    sell0ST.insert(node);
+    cout << "\n[ORDER] " << traderName << " SELL " << quantity << " @ $" << price << "\n";
+}
+
+void OrderBook::cancelBuyOrder(int price, string traderName) {
+    OSTNode* node = buyOST.findNode(price, traderName);
+    if (node) {
+        buyOST.deleteNode(node);
+        cout << "\n[CANCELLED] Buy @ $" << price << "\n";
+    }
+}
+
+void OrderBook::cancelSellOrder(int price, string traderName) {
+    OSTNode* node = sellOST.findNode(price, traderName);
+    if (node) {
+        sell0ST.deleteNode(node);
+        cout << "\n[CANCELLED] Sell @ $" << price << "\n";
+    }
+}
+
+int OrderBook::getOrderRangeCount(int x, int y) {
+    return buyOST.rangeCount(x, y) + sell0ST.rangeCount(x, y);
+}
