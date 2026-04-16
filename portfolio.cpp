@@ -153,7 +153,8 @@ return ( r * 100) / portfolioOST . totalNodes ;
 void Portfolio :: getRecentTrades (int n ) {
 int total = tradeHistoryOST . totalNodes ;
 if ( total == 0) return ;
-for (int i = total ; i > max (0 , total - n ) ; i - -) {
+int count = myMin(n, total);
+for (int i = total; i > total - count; i--) {
 OSTNode * t = tradeHistoryOST . select ( tradeHistoryOST . root ,
 i ) ;
 if ( t ) cout << "[ TRADE ] " << t -> trade . getBuyerName ()
