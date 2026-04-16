@@ -40,6 +40,7 @@ struct OSTNode {
     long long timestamp ;
     NodeType nodeType ;
     Order order ;           // The actual order data stored in this node
+    TraderProfile trader ;
     OSTNode * left ;        // Pointer to left child
     OSTNode * right ;       // Pointer to right child
     OSTNode * parent ;      // Pointer to parent (useful for rank calculations)
