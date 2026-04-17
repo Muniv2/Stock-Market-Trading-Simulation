@@ -79,7 +79,7 @@ string buyerName , string sellerName )
 {
 tradeCounter ++;
 OSTNode * node = new OSTNode ( tradeCounter , TRADE_NODE ) ;
-node->TradeRecord.setTimestamp ( tradeCounter ) ;
+node->trade.setTimestamp ( tradeCounter ) ;
 node->trade.setPrice ( price ) ;
 node->trade.setQuantity ( quantity ) ;
 node->trade.setBuyerName ( buyerName ) ;

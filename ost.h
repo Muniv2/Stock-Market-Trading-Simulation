@@ -34,6 +34,58 @@ class Order {
         void setTimestamp ( long long ts ) ;
 };
 
+
+// Trader Profile Class
+class TraderProfile {
+private:
+    string name;
+    string role;
+    int budget;
+    int inventory;
+    int profitLoss;
+    int portfolioValue;
+public:
+    TraderProfile();
+    TraderProfile(string n, string r, int b, int inv, int pl, int pv);
+    string getName() const;
+    string getRole() const;
+    int getBudget() const;
+    int getInventory() const;
+    int getProfitLoss() const;
+    int getPortfolioValue() const;
+    void setName(string n);
+    void setRole(string r);
+    void setBudget(int b);
+    void setInventory(int inv);
+    void setProfitLoss(int pl);
+    void setPortfolioValue(int pv);
+};
+
+class TradeRecord {
+    private :
+        long long timestamp ;
+        int price ;
+        int quantity ;
+        string buyerName ;
+        string sellerName ;
+
+    public :
+        TradeRecord () ;
+        TradeRecord ( long long ts , int p , int q , string b , string s ) ;
+        long long getTimestamp () const ;
+        int getPrice () const ;
+        int getQuantity () const ;
+        string getBuyerName () const ;
+        string getSellerName () const ;
+        void setTimestamp ( long long ts ) ;
+        void setPrice (int p ) ;
+        void setQuantity (int q ) ;
+        void setBuyerName ( string b ) ;
+        void setSellerName ( string s ) ;
+};
+
+
+
 // The basic building block of the Order Statistic Tree (OST)
 struct OSTNode {
     int key ;               // The value used for sorting (e.g., price)
@@ -41,6 +93,7 @@ struct OSTNode {
     NodeType nodeType ;
     Order order ;           // The actual order data stored in this node
     TraderProfile trader ;
+    TradeRecord trade ;
     OSTNode * left ;        // Pointer to left child
     OSTNode * right ;       // Pointer to right child
     OSTNode * parent ;      // Pointer to parent (useful for rank calculations)
@@ -91,56 +144,6 @@ class OST {
         int rank ( OSTNode * node , int key ) ;
         int rangeCount (int x , int y ) ;
         
-};
-
-
-// Trader Profile Class
-class TraderProfile {
-private:
-    string name;
-    string role;
-    int budget;
-    int inventory;
-    int profitLoss;
-    int portfolioValue;
-public:
-    TraderProfile();
-    TraderProfile(string n, string r, int b, int inv, int pl, int pv);
-    string getName() const;
-    string getRole() const;
-    int getBudget() const;
-    int getInventory() const;
-    int getProfitLoss() const;
-    int getPortfolioValue() const;
-    void setName(string n);
-    void setRole(string r);
-    void setBudget(int b);
-    void setInventory(int inv);
-    void setProfitLoss(int pl);
-    void setPortfolioValue(int pv);
-};
-
-class TradeRecord {
-    private :
-        long long timestamp ;
-        int price ;
-        int quantity ;
-        string buyerName ;
-        string sellerName ;
-
-    public :
-        TradeRecord () ;
-        TradeRecord ( long long ts , int p , int q , string b , string s ) ;
-        long long getTimestamp () const ;
-        int getPrice () const ;
-        int getQuantity () const ;
-        string getBuyerName () const ;
-        string getSellerName () const ;
-        void setTimestamp ( long long ts ) ;
-        void setPrice (int p ) ;
-        void setQuantity (int q ) ;
-        void setBuyerName ( string b ) ;
-        void setSellerName ( string s ) ;
 };
 
 

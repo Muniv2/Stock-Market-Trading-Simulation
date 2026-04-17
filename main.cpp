@@ -56,7 +56,7 @@ Portfolio portfolio ;
 // This pattern ensures atomicity : either trade completes fully or can be replayed from persistent log
 // ===== ISMAIL : Menu & Input Handlers =====
 void displayMenu () {
-cout << "\n=== Trading System ===\ n";
+cout << "\n=== Trading System ===\n";
 cout << "0. Create Profile | 1. Buy | 2. Sell \n";
 cout << "3. Market | 4. Cancel Buy | 5. Cancel Sell \n";
 cout << "9. Exit \n";
@@ -75,7 +75,7 @@ int price , qty ;
 string name ;
 cout << " Trader : "; cin >> name ;
 cout << " Price : "; cin >> price ;
-cout << "Qty : "; cin >> qty ;
+cout << " Qty : "; cin >> qty ;
 orderBook . placeBuyOrder ( price , qty , name ) ;
 // CRITICAL ATOMICITY SEQUENCE : Do NOT add code between matchOrders and settleTradeAmounts
 // If matchOrders returns true but program crashes before settleTradeAmounts completes ,
@@ -97,7 +97,7 @@ int price , qty ;
 string name ;
 cout << " Trader : "; cin >> name ;
 cout << " Price : "; cin >> price ;
-cout << "Qty : "; cin >> qty ;
+cout << " Qty : "; cin >> qty ;
 orderBook . placeSellOrder ( price , qty , name ) ;
 // CRITICAL ATOMICITY SEQUENCE : Do NOT add code between matchOrders and settleTradeAmounts
 // If matchOrders returns true but program crashes before settleTradeAmounts completes ,

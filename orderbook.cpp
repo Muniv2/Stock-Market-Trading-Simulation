@@ -65,7 +65,7 @@ void OrderBook::placeSellOrder(int price, int quantity, string traderName) {
     node->order.setQuantity(quantity);
     node->order.setTraderName(traderName);
     node->order.setTimestamp(time(nullptr));
-    sell0ST.insert(node);
+    sellOST.insert(node);
     cout << "\n[ORDER] " << traderName << " SELL " << quantity << " @ $" << price << "\n";
 }
 
@@ -80,11 +80,11 @@ void OrderBook::cancelBuyOrder(int price, string traderName) {
 void OrderBook::cancelSellOrder(int price, string traderName) {
     OSTNode* node = sellOST.findNode(price, traderName);
     if (node) {
-        sell0ST.deleteNode(node);
+        sellOST.deleteNode(node);
         cout << "\n[CANCELLED] Sell @ $" << price << "\n";
     }
 }
 
 int OrderBook::getOrderRangeCount(int x, int y) {
-    return buyOST.rangeCount(x, y) + sell0ST.rangeCount(x, y);
+    return buyOST.rangeCount(x, y) + sellOST.rangeCount(x, y);
 }
