@@ -5,6 +5,22 @@
 Portfolio::Portfolio() : tradeCounter(0) {}
 
 void Portfolio::createProfile(string name, string role, int amount) {
+
+    // Profile creation guards
+    if (findTrader(name) != nullptr) {
+        cout << "[ERROR] Trader already registered.\n";
+        return;
+    }
+    if (role != "buyer" && role != "seller") {
+        cout << "[ERROR] Role must be buyer or seller.\n";
+        return;
+    }
+    if (amount <= 0) {
+        cout << "[ERROR] Starting amount must be positive.\n";
+        return;
+    }
+
+    // Creating new node
     OSTNode* node = new OSTNode(amount, TRADER_NODE);
     node->trader.setName(name);
     node->trader.setRole(role);
