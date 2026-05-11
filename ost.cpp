@@ -36,8 +36,7 @@ return node -> height ;
 }
 void OST :: updateHeight ( OSTNode * node ) {
 if (! node ) return ;
-node -> height = 1 + max ( getHeight ( node -> left ) , getHeight ( node
--> right ) ) ;
+node->height = 1 + myMax( getHeight(node->left), getHeight(node->right) );
 }
 int OST :: getBalanceFactor ( OSTNode * node ) {
 if (! node ) return 0;

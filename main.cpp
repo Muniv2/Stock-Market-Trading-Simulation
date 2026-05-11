@@ -2,63 +2,13 @@
 # include "portfolio.h"
 OrderBook orderBook ;
 Portfolio portfolio ;
-// ===== OPTIONAL IMPLEMENTATION : Trade Logging for Atomicity Safety =====
-// INSTRUCTIONS : If you want to protect against crash corruption ( main .cpp line ~25 -26) ,
-// implement the functions below and modify handleBuyOrder / handleSellOrder to call safeBuyOrder / safeSellOrder
-// # include <fstream >
-// static ofstream tradeLog (" trades .log "); // Persistent trade record
-// void logTradeToPersistentStorage ( const string & buyer , cons string & seller ,
-// int price , int qty) {
-// // STEP 1: Write to external log file BEFORE modifying any trees
-// tradeLog << buyer << "|" << seller << "|" << price << "|" << qty << "| PENDING \n";
-// tradeLog . flush (); // Force to disk - survives crash
-// }
-//
-// void markTradeAsCompleted ( const string & buyer , const string & seller ,
-// int price , int qty) {
-// // STEP 4: Append completion marker to log
-// tradeLog << buyer << "|" << seller << "|" << price << "|" << qty << "| COMPLETED \n";
-// tradeLog . flush ();
-// }
-//
-// void safeBuyOrder () {
-// int price , qty;
-// string name ;
-// cout << " Trader : "; cin >> name ;
-// cout << " Price : "; cin >> price ;
-// cout << " Qty: "; cin >> qty ;
-// orderBook . placeBuyOrder (price , qty , name );
-//
-// string buyer , seller ;
-// int tradePrice , tradeQty ;
-// if ( orderBook . matchOrders (buyer , seller , tradePrice , tradeQty )) {
-// // SAFE PATTERN :
-// // STEP 1: Log trade to persistent storage ( survives crash )
-// logTradeToPersistentStorage (buyer , seller , tradePrice , tradeQty );
-//
-// // STEP 2: Record in memory log
-// portfolio . recordTrade ( tradePrice , tradeQty , buyer , seller );
-//
-// // STEP 3: Update portfolios (if crash here , trade was logged and can be replayed )
-// portfolio . settleTradeAmounts (buyer , seller , tradePrice , tradeQty );
-//
-// // STEP 4: Mark trade as completed in persistent log
-// markTradeAsCompleted (buyer , seller , tradePrice , tradeQty );
-// }
-// }
-//
-// RECOVERY LOGIC (on startup ):
-// vector < string > pendingTrades = readTradesMarkedPending ();
-// for ( auto trade : pendingTrades ) {
-// replaySettleTradeAmounts ( trade ); // Re - apply unsettled trades
-// }
-//
-// This pattern ensures atomicity : either trade completes fully or can be replayed from persistent log
+
 // ===== ISMAIL : Menu & Input Handlers =====
 void displayMenu () {
 cout << "\n=== Trading System ===\n";
 cout << "0. Create Profile | 1. Buy | 2. Sell \n";
 cout << "3. Market | 4. Cancel Buy | 5. Cancel Sell \n";
+cout << "6. Trader Stats\n";
 cout << "9. Exit \n";
 }
 void handleCreateProfile () {
@@ -69,6 +19,7 @@ cout << " Role ( buyer / seller ): "; cin >> role ;
 cout << " Amount : "; cin >> amount ;
 portfolio . createProfile ( name , role , amount ) ;
 }
+
 
 void handleBuyOrder () {
 int price , qty ;
@@ -136,6 +87,27 @@ cout << " Trader : "; cin >> name ;
 cout << " Price : "; cin >> price ;
 orderBook . cancelSellOrder ( price , name ) ;
 }
+
+void handleTraderStats() {
+    string name;
+    cout << "Trader name: "; cin >> name;
+    OSTNode* node = portfolio.findTrader(name);
+    if (!node) { cout << "[ERROR] Trader not found.\n"; return; }
+    int r = portfolio.getTraderRank(node->key);
+    int p = portfolio.getTraderPercentile(node->key);
+    cout << "\n[TRADER STATS] " << name << "\n";
+    cout << "------------------------------------------\n";
+    cout << "Role          : " << node->trader.getRole() << "\n";
+    cout << "Portfolio Val : $" << node->trader.getPortfolioValue() << "\n";
+    cout << "Budget        : $" << node->trader.getBudget() << "\n";
+    cout << "Inventory     : " << node->trader.getInventory() << " shares\n";
+    cout << "Profit/Loss   : $" << node->trader.getProfitLoss() << "\n";
+    cout << "Market Rank   : #" << r << " of "
+         << portfolio.portfolioOST.totalNodes << " traders\n";
+    cout << "Percentile    : " << p << "%\n";
+    cout << "------------------------------------------\n";
+}
+
 // ===== MAIN LOOP =====
 int main () {
 int choice ;
@@ -150,6 +122,7 @@ case 2: handleSellOrder () ; break ;
 case 3: displayMarket () ; break ;
 case 4: handleCancelBuy () ; break ;
 case 5: handleCancelSell () ; break ;
+case 6: handleTraderStats(); break;
 case 9: {
 // Cleanup : Recursively delete all allocated nodes
 vector < OSTNode * > buyNodes , sellNodes , portNodes ,
