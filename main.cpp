@@ -29,12 +29,28 @@ void handleBuyOrder () {
     int price , qty ;
     string name ;
     cout << " Trader : "; cin >> name ;
+    // Check if trader exists
+    if (portfolio.findTrader(name) == nullptr) {
+        cout << "[ERROR] " << name << " is not registered. Create a profile first.\n";
+        return;
+    }
+    
     cout << " Price : "; cin >> price ;
     cout << " Qty : "; cin >> qty ;
+    // Validation : Non-Positive values not allowed
     if (price <= 0 || qty <= 0) {
         cout << "[ERROR] Price and quantity must be positive.\n";
         return;
     }
+
+    // Check budget
+    OSTNode* t = portfolio.findTrader(name);
+    if (t != nullptr && t->trader.getBudget() < price * qty) {
+        cout << "[ERROR] Insufficient budget. You have $" 
+             << t->trader.getBudget() << " available.\n";
+        return;
+    }
+    
     orderBook . placeBuyOrder ( price , qty , name ) ;
     // CRITICAL ATOMICITY SEQUENCE : Do NOT add code between matchOrders and settleTradeAmounts
     // If matchOrders returns true but program crashes before settleTradeAmounts completes ,
@@ -53,12 +69,27 @@ void handleSellOrder () {
     int price , qty ;
     string name ;
     cout << " Trader : "; cin >> name ;
+    // Check if trader exists
+    if (portfolio.findTrader(name) == nullptr) {
+        cout << "[ERROR] " << name << " is not registered. Create a profile first.\n";
+        return;
+    }
+    
     cout << " Price : "; cin >> price ;
     cout << " Qty : "; cin >> qty ;
+    // Validation : Non-Positive values not allowed
     if (price <= 0 || qty <= 0) {
         cout << "[ERROR] Price and quantity must be positive.\n";
         return;
         }
+
+    // Check inventory
+    OSTNode* t = portfolio.findTrader(name);
+    if (t != nullptr && t->trader.getInventory() < qty) {
+        cout << "[ERROR] Insufficient inventory. You have " 
+             << t->trader.getInventory() << " shares.\n";
+        return;
+    }
     orderBook . placeSellOrder ( price , qty , name ) ;
     // CRITICAL ATOMICITY SEQUENCE : Do NOT add code between matchOrders and settleTradeAmounts
     // If matchOrders returns true but program crashes before settleTradeAmounts completes ,
