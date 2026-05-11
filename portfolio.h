@@ -39,4 +39,7 @@ public :
 
     void clearNameMap () { tradersByName . clear () ; } // Public
 //accessor for cleanup
+
+    // To display top traders by portfolio value (for testing/demo purposes)
+    void displayLeaderboard();
 };
