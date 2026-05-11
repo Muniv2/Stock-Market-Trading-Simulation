@@ -31,6 +31,10 @@ void handleBuyOrder () {
     cout << " Trader : "; cin >> name ;
     cout << " Price : "; cin >> price ;
     cout << " Qty : "; cin >> qty ;
+    if (price <= 0 || qty <= 0) {
+        cout << "[ERROR] Price and quantity must be positive.\n";
+        return;
+    }
     orderBook . placeBuyOrder ( price , qty , name ) ;
     // CRITICAL ATOMICITY SEQUENCE : Do NOT add code between matchOrders and settleTradeAmounts
     // If matchOrders returns true but program crashes before settleTradeAmounts completes ,
@@ -51,6 +55,10 @@ void handleSellOrder () {
     cout << " Trader : "; cin >> name ;
     cout << " Price : "; cin >> price ;
     cout << " Qty : "; cin >> qty ;
+    if (price <= 0 || qty <= 0) {
+        cout << "[ERROR] Price and quantity must be positive.\n";
+        return;
+        }
     orderBook . placeSellOrder ( price , qty , name ) ;
     // CRITICAL ATOMICITY SEQUENCE : Do NOT add code between matchOrders and settleTradeAmounts
     // If matchOrders returns true but program crashes before settleTradeAmounts completes ,
@@ -144,6 +152,12 @@ int main () {
     displayMenu () ;
     cout << " Choice : ";
     cin >> choice ;
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << "[ERROR] Please enter a valid number.\n";
+        continue;
+    }
     switch ( choice ) {
         case 0: handleCreateProfile () ; break ;
         case 1: handleBuyOrder () ; break ;
