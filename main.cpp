@@ -9,6 +9,8 @@ void displayMenu () {
     cout << "0. Create Profile | 1. Buy | 2. Sell \n";
     cout << "3. Market | 4. Cancel Buy | 5. Cancel Sell \n";
     cout << "6. Trader Stats\n";
+    cout << "7. Orders in Price Range\n";
+    cout << "8. Recent Trades\n";
     cout << "9. Exit \n";
     cout << "10. Leaderboard\n";
 }
@@ -66,11 +68,24 @@ void handleSellOrder () {
 
 // ===== AHMAD : Query & Stats Handlers =====
 void displayMarket () {
-    OSTNode * bid = orderBook.getBestBid () ;
-    OSTNode * ask = orderBook.getBestAsk () ;
-    cout << "\n[ MARKET ]\n";
-    if (bid) cout << " Best Bid : $" << bid -> key << "\n";
-    if (ask) cout << " Best Ask : $" << ask -> key << "\n";
+    OSTNode* bid = orderBook.getBestBid();
+    OSTNode* ask = orderBook.getBestAsk();
+    cout << "\n[MARKET STATUS]\n";
+    cout << "------------------------------------------\n";  
+    if (bid)
+        cout << "Best Bid : $" << bid->key << " by " << bid->order.getTraderName() << "\n";
+    else
+        cout << "Best Bid : No buy orders\n";
+    if (ask)
+        cout << "Best Ask : $" << ask->key << " by " << ask->order.getTraderName() << "\n";
+    else
+        cout << "Best Ask : No sell orders\n";
+    if (bid && ask)
+        cout << "Spread : $" << (ask->key - bid->key) << "\n";
+
+    cout << "Buy Orders : " << orderBook.buyOST.totalNodes << "\n";
+    cout << "Sell Orders: " << orderBook.sellOST.totalNodes << "\n";
+    cout << "------------------------------------------\n";
 }
 
 void handleCancelBuy () {
@@ -109,6 +124,19 @@ void handleTraderStats() {
     cout << "------------------------------------------\n";
 }
 
+void handleRangeQuery() {
+    int x, y;
+    cout << "Lower price bound ($): "; cin >> x;
+    cout << "Upper price bound ($): "; cin >> y;
+    if (x > y || x <= 0 || y <= 0) {
+        cout << "[ERROR] Enter valid positive bounds with lower <= upper.\n";
+        return;
+    }
+    int count = orderBook.getOrderRangeCount(x, y);
+    cout << "\n[RANGE QUERY] Orders between $" << x << " and $" << y << ": " << count << " orders\n";
+}
+
+
 // ===== MAIN LOOP =====
 int main () {
     int choice ;
@@ -124,6 +152,8 @@ int main () {
         case 4: handleCancelBuy () ; break ;
         case 5: handleCancelSell () ; break ;
         case 6: handleTraderStats(); break;
+        case 7: handleRangeQuery(); break;
+        case 8: portfolio.getRecentTrades(5); break;
         case 9: {
             // Cleanup : Recursively delete all allocated nodes
             vector < OSTNode * > buyNodes, sellNodes, portNodes, tradeNodes;
