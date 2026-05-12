@@ -27,11 +27,11 @@ void Portfolio::createProfile(string name, string role, int amount) {
     node->trader.setPortfolioValue(amount);
 
     if (role == "buyer") {
-        node->trader.setBudget(amount);
-        node->trader.setInventory(0);
+        node->trader.setBudget(amount); // Total moneyz he got 
+        node->trader.setInventory(0); // Stock is zero in buyer
     } else {
-        node->trader.setInventory(amount);
-        node->trader.setBudget(0);
+        node->trader.setInventory(amount); // Total amount of stocks and initial value per stock = $1
+        node->trader.setBudget(0); // Total budget he has is zero. All he gots is stonkz
     }
 
     node->trader.setProfitLoss(0);
@@ -87,7 +87,7 @@ void Portfolio::updatePortfolio(string name, int oldValue, int newValue,
 }
 
 
-// ===== AHMAD : Trade Recording & Statistics =====
+//  Trade Recording & Statistics 
 void Portfolio :: recordTrade (int price, int quantity, string buyerName, string sellerName ) {
 tradeCounter ++;
 OSTNode * node = new OSTNode (tradeCounter, TRADE_NODE);

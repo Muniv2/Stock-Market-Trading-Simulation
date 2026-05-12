@@ -11,7 +11,7 @@ void OrderBook :: placeBuyOrder (int price, int quantity, string traderName) {
     node->order.setTraderName(traderName);
     node->order.setTimestamp(time(nullptr));
     buyOST.insert(node);
-    cout << "\n[ ORDER ] " << traderName << " BUY " << quantity << " @ $" << price << "\n";
+    cout << "\n[ BUY ORDER ] " << traderName << " BUY " << quantity << " @ $" << price << "\n";
 }
 
 OSTNode * OrderBook :: getBestBid () {
@@ -66,14 +66,14 @@ void OrderBook::placeSellOrder(int price, int quantity, string traderName) {
     node->order.setTraderName(traderName);
     node->order.setTimestamp(time(nullptr));
     sellOST.insert(node);
-    cout << "\n[ORDER] " << traderName << " SELL " << quantity << " @ $" << price << "\n";
+    cout << "\n[ SELL ORDER ] " << traderName << " SELL " << quantity << " @ $" << price << "\n";
 }
 
 void OrderBook::cancelBuyOrder(int price, string traderName) {
     OSTNode* node = buyOST.findNode(price, traderName);
     if (node) {
         buyOST.deleteNode(node);
-        cout << "\n[CANCELLED] Buy @ $" << price << "\n";
+        cout << "\n[ CANCELLED ] Buy @ $" << price << "\n";
     }
     else {
         cout << "\n[ERROR] Buy order not found. Check name and price.\n";
@@ -84,7 +84,7 @@ void OrderBook::cancelSellOrder(int price, string traderName) {
     OSTNode* node = sellOST.findNode(price, traderName);
     if (node) {
         sellOST.deleteNode(node);
-        cout << "\n[CANCELLED] Sell @ $" << price << "\n";
+        cout << "\n[ CANCELLED ] Sell @ $" << price << "\n";
     }
     else {
         cout << "\n[ERROR] Sell order not found. Check name and price.\n";
