@@ -1,5 +1,13 @@
 #include "gui.h"
 #include <sstream>
+// Safe, physical search of the live AVL tree to bypass dangling pointers
+OSTNode* getLiveTraderNode(OSTNode* root, const string& targetName) {
+    if (!root) return nullptr;
+    if (root->trader.getName() == targetName) return root;
+    OSTNode* foundLeft = getLiveTraderNode(root->left, targetName);
+    if (foundLeft) return foundLeft;
+    return getLiveTraderNode(root->right, targetName);
+}
 
 sf::Text GUI::makeText(string str, int size, sf::Color col, float x, float y) {
     sf::Text t;
@@ -23,7 +31,6 @@ GUI::GUI(OrderBook& ob, Portfolio& pf)
       orderBook(ob), portfolio(pf), activeBox(nullptr) {
     window.setFramerateLimit(30);
     
-    // Lock the internal view to your original 1100x700 grid
     sf::View view(sf::FloatRect(0, 0, 1100, 700));
     window.setView(view);
 
@@ -32,8 +39,7 @@ GUI::GUI(OrderBook& ob, Portfolio& pf)
             font.loadFromFile("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf");
     initButtons();
     initInputBoxes();
-    
-    // Revamped Initial Log Message
+
     statusMsg = "TERMINAL | System Initialized. Welcome. Create trader profiles to begin.";
 }
 
@@ -51,7 +57,6 @@ void GUI::initInputBoxes() {
     makeBox(priceBox, 20, 620, "Price");
     makeBox(qtyBox, 185, 620, "Quantity");
     
-    // Pre-fill the Role box as a dropdown-style toggle
     roleBox.value = "buyer"; 
     updateInputText(roleBox);
 }
@@ -68,7 +73,6 @@ void GUI::initButtons() {
         b.shape.setSize({118, 34}); b.shape.setPosition(x, y);
         b.shape.setOutlineThickness(1);
         
-        // Color-Code the Exit Button to RED
         if (b.id == "exit") {
             b.shape.setFillColor(sf::Color(180, 40, 40)); 
             b.shape.setOutlineColor(sf::Color(220, 80, 80));
@@ -138,28 +142,40 @@ void GUI::drawLeaderboard() {
     
     window.draw(makeText("LEADERBOARD", 14, sf::Color(100,160,255), 385, 52));
     
+    // 1. Updated Headers to perfectly squeeze in a Cash column
     window.draw(makeText("Rank", 10, sf::Color(150,150,150), 385, 74));
-    window.draw(makeText("Name", 10, sf::Color(150,150,150), 430, 74));
-    window.draw(makeText("Role", 10, sf::Color(150,150,150), 510, 74));
-    window.draw(makeText("Stock", 10, sf::Color(150,150,150), 570, 74));
-    window.draw(makeText("Value", 10, sf::Color(150,150,150), 630, 74));
+    window.draw(makeText("Name", 10, sf::Color(150,150,150), 420, 74));
+    window.draw(makeText("Role", 10, sf::Color(150,150,150), 470, 74));
+    window.draw(makeText("Stock", 10, sf::Color(150,150,150), 525, 74));
+    window.draw(makeText("Cash", 10, sf::Color(150,150,150), 575, 74));
+    window.draw(makeText("Total", 10, sf::Color(150,150,150), 640, 74));
 
     int total = portfolio.portfolioOST.totalNodes; float y = 92;
     for (int i = total; i >= 1; i--) {
         OSTNode* n = portfolio.portfolioOST.select(portfolio.portfolioOST.root, i);
         if (!n) continue;
+        
+        // Check Rank
         int rank = total - i + 1;
         sf::Color col = (rank == 1) ? sf::Color(255,215,0) : sf::Color(200,200,200);
         
+        // Rank, Name and Role
         window.draw(makeText("#" + to_string(rank), 12, col, 385, y));
-        window.draw(makeText(n->trader.getName(), 12, col, 430, y));
-        window.draw(makeText(n->trader.getRole(), 12, col, 510, y));
-        window.draw(makeText(to_string(n->trader.getInventory()), 12, col, 570, y));
-        window.draw(makeText("$" + to_string(n->trader.getPortfolioValue()), 12, col, 630, y));
+        window.draw(makeText(n->trader.getName(), 12, col, 420, y));
+        window.draw(makeText(n->trader.getRole(), 12, col, 470, y));
+        
+        // Stock 
+        window.draw(makeText(to_string(n->trader.getInventory()), 12, col, 525, y));
+        
+        // NEW: Cash / Budget 
+        window.draw(makeText("$" + to_string(n->trader.getBudget()), 12, sf::Color(140,220,140), 575, y));
+        
+        // Total Portfolio Value
+        window.draw(makeText("$" + to_string(n->trader.getPortfolioValue()), 12, col, 640, y));
+        
         y += 20;
     }
 }
-
 void GUI::drawTradeHistory() {
     sf::RectangleShape panel({350, 460}); panel.setPosition(748, 45);
     panel.setFillColor(sf::Color(12,12,28));
@@ -173,6 +189,7 @@ void GUI::drawTradeHistory() {
     window.draw(makeText("Seller", 10, sf::Color(150,150,150), 880, 74));
     window.draw(makeText("Price", 10, sf::Color(150,150,150), 960, 74));
     window.draw(makeText("Qty", 10, sf::Color(150,150,150), 1030, 74));
+
 
     int total = portfolio.tradeHistoryOST.totalNodes; float y = 92;
     for (int i = total; i >= 1 && i > total - 20; i--) {
@@ -193,7 +210,6 @@ void GUI::drawStatusBar() {
     bar.setOutlineColor(sf::Color(50,80,140)); bar.setOutlineThickness(1);
     window.draw(bar);
     
-    // Check if it's an error to color it red, otherwise green
     sf::Color logColor = (statusMsg.find("[ERROR]") != string::npos) ? sf::Color(255,100,100) : sf::Color(140,220,140);
     window.draw(makeText(statusMsg, 11, logColor, 12, 516));
 }
@@ -249,7 +265,7 @@ void GUI::handleButtonClick(const string& id) {
             string buyer, seller; int tp, tq;
             int matchCount = 0;
             
-            // THE FIX: While loop to sweep the order book
+
             while (orderBook.matchOrders(buyer, seller, tp, tq)) {
                 portfolio.recordTrade(tp, tq, buyer, seller);
                 portfolio.settleTradeAmounts(buyer, seller, tp, tq);
@@ -278,8 +294,7 @@ void GUI::handleButtonClick(const string& id) {
         orderBook.placeSellOrder(price, qty, name);
         string buyer, seller; int tp, tq;
         int matchCount = 0;
-        
-        // THE FIX: While loop to sweep the order book
+
         while (orderBook.matchOrders(buyer, seller, tp, tq)) {
             portfolio.recordTrade(tp, tq, buyer, seller);
             portfolio.settleTradeAmounts(buyer, seller, tp, tq);
@@ -294,24 +309,47 @@ void GUI::handleButtonClick(const string& id) {
         }    
     } else if (id == "canbuy") {
         if (name.empty() || price <= 0) { statusMsg = "TERMINAL | [ERROR] Fill Name and Price to cancel."; return; }
+
+        int sizeBefore = orderBook.buyOST.totalNodes; 
         orderBook.cancelBuyOrder(price, name);
-        statusMsg = "TERMINAL | SUCCESS: Cancelled Buy Order @ $" + to_string(price) + " for '" + name + "'";
+        int sizeAfter = orderBook.buyOST.totalNodes;
+        
+        if (sizeBefore > sizeAfter) {
+            statusMsg = "TERMINAL | SUCCESS: Cancelled Buy Order @ $" + to_string(price) + " for '" + name + "'";
+        } else {
+            statusMsg = "TERMINAL | [ERROR] Ghost Cancel! No active Buy order found for '" + name + "' @ $" + to_string(price);
+        }
     
     } else if (id == "cansell") {
         if (name.empty() || price <= 0) { statusMsg = "TERMINAL | [ERROR] Fill Name and Price to cancel."; return; }
+        
+
+        int sizeBefore = orderBook.sellOST.totalNodes;
         orderBook.cancelSellOrder(price, name);
-        statusMsg = "TERMINAL | SUCCESS: Cancelled Sell Order @ $" + to_string(price) + " for '" + name + "'";
-    
+        int sizeAfter = orderBook.sellOST.totalNodes;
+        
+        if (sizeBefore > sizeAfter) {
+            statusMsg = "TERMINAL | SUCCESS: Cancelled Sell Order @ $" + to_string(price) + " for '" + name + "'";
+        } else {
+            statusMsg = "TERMINAL | [ERROR] Ghost Cancel! No active Sell order found for '" + name + "' @ $" + to_string(price);
+        }
     } else if (id == "stats") {
-        OSTNode* n = portfolio.findTrader(name);
+
+        OSTNode* n = getLiveTraderNode(portfolio.portfolioOST.root, name);
+        
         if (!n) { statusMsg = "TERMINAL | [ERROR] Trader not found: " + name; return; }
-        int r = portfolio.getTraderRank(n->key);
+        
+
+        int ascendingRank = portfolio.getTraderRank(n->key);
+        int totalTraders = portfolio.portfolioOST.totalNodes;
+
+        int displayRank = totalTraders - ascendingRank + 1;
+        
         int p = portfolio.getTraderPercentile(n->key);
         statusMsg = "TERMINAL | STATS FOR '" + name + "': PV=$" + to_string(n->trader.getPortfolioValue())
-                  + " | Rank #" + to_string(r) + " (" + to_string(p) + "th Percentile)"
+                  + " | Rank #" + to_string(displayRank) + " (" + to_string(p) + "th Percentile)"
                   + " | Cash=$" + to_string(n->trader.getBudget())
                   + " | Stock=" + to_string(n->trader.getInventory());
-    
     } else if (id == "range") {
         if (price <= 0 || qty <= 0 || price > qty) {
             statusMsg = "TERMINAL | [ERROR] Use Price=lower, Qty=upper. Both must be positive, lower <= upper."; return; 
@@ -337,7 +375,15 @@ void GUI::run() {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) window.close();
             
-            if (event.type == sf::Event::MouseButtonPressed) {
+
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::LBracket) treeViewMode = (treeViewMode == 1) ? 0 : 1;
+                if (event.key.code == sf::Keyboard::RBracket) treeViewMode = (treeViewMode == 2) ? 0 : 2;
+                if (event.key.code == sf::Keyboard::Escape) treeViewMode = 0;
+            }
+            
+
+            if (treeViewMode == 0 && event.type == sf::Event::MouseButtonPressed) {
                 sf::Vector2f mappedPos = window.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
                 sf::Vector2i pos((int)mappedPos.x, (int)mappedPos.y);
                 
@@ -347,11 +393,10 @@ void GUI::run() {
                 for (auto b : boxes) {
                     b->active = b->shape.getGlobalBounds().contains((float)pos.x, (float)pos.y);
                     if (b->active) {
-                        // The Toggle Trick for the Role Box
                         if (b == &roleBox) {
                             roleBox.value = (roleBox.value == "buyer") ? "seller" : "buyer";
                             updateInputText(roleBox);
-                            b->active = false; // Don't let them type in it
+                            b->active = false; 
                         } else {
                             activeBox = b;
                         }
@@ -361,7 +406,8 @@ void GUI::run() {
                     if (btn.contains(pos)) handleButtonClick(btn.id);
             }
             
-            if (event.type == sf::Event::TextEntered && activeBox) {
+
+            if (treeViewMode == 0 && event.type == sf::Event::TextEntered && activeBox) {
                 if (event.text.unicode == 8) {
                     if (!activeBox->value.empty()) activeBox->value.pop_back();
                 } else if (event.text.unicode >= 32 && event.text.unicode < 128) {
@@ -372,9 +418,72 @@ void GUI::run() {
         }
         
         window.clear(sf::Color(8,8,20));
-        window.draw(makeText("STOCK MARKET TRADING SIMULATION", 16, sf::Color(100,160,255), 400, 14));
-        drawOrderBook(); drawLeaderboard(); drawTradeHistory();
-        drawStatusBar(); drawInputPanel();
+
+        if (treeViewMode == 1) {
+            window.draw(makeText("DEBUG VISUALIZER: SELL OST (ASKS) - PRESS '[' OR 'ESC' TO RETURN", 16, sf::Color(255, 100, 100), 280, 20));
+
+            drawTreeRecursive(orderBook.sellOST.root, 550.0f, 100.0f, 250.0f, sf::Color(255, 100, 100)); 
+        } else if (treeViewMode == 2) {
+            window.draw(makeText("DEBUG VISUALIZER: BUY OST (BIDS) - PRESS ']' OR 'ESC' TO RETURN", 16, sf::Color(100, 255, 100), 280, 20));
+
+            drawTreeRecursive(orderBook.buyOST.root, 550.0f, 100.0f, 250.0f, sf::Color(100, 255, 100));
+        } else {
+
+            window.draw(makeText("STOCK MARKET TRADING SIMULATION", 16, sf::Color(100,160,255), 400, 14));
+            drawOrderBook(); drawLeaderboard(); drawTradeHistory();
+            drawStatusBar(); drawInputPanel();
+        }
+        
         window.display();
     }
+}
+
+void GUI::drawTreeRecursive(OSTNode* node, float x, float y, float hOffset, sf::Color nodeColor) {
+    if (!node) return;
+
+    float vOffset = 85.0f; 
+
+
+    if (node->left) {
+        sf::Vertex line[] = {
+            sf::Vertex(sf::Vector2f(x, y), sf::Color(100, 100, 150)),
+            sf::Vertex(sf::Vector2f(x - hOffset, y + vOffset), sf::Color(100, 100, 150))
+        };
+        window.draw(line, 2, sf::Lines);
+        drawTreeRecursive(node->left, x - hOffset, y + vOffset, hOffset * 0.55f, nodeColor);
+    }
+
+    if (node->right) {
+        sf::Vertex line[] = {
+            sf::Vertex(sf::Vector2f(x, y), sf::Color(100, 100, 150)),
+            sf::Vertex(sf::Vector2f(x + hOffset, y + vOffset), sf::Color(100, 100, 150))
+        };
+        window.draw(line, 2, sf::Lines);
+        drawTreeRecursive(node->right, x + hOffset, y + vOffset, hOffset * 0.55f, nodeColor);
+    }
+
+    float boxW = 96.0f;
+    float boxH = 58.0f;
+    sf::RectangleShape box({boxW, boxH});
+    box.setOrigin(boxW / 2.0f, boxH / 2.0f);
+    box.setPosition(x, y);
+    box.setFillColor(sf::Color(20, 25, 45)); 
+    box.setOutlineThickness(2.0f);
+    box.setOutlineColor(nodeColor); 
+    window.draw(box);
+
+
+    float textStartX = x - (boxW / 2.0f) + 6.0f;
+    float textStartY = y - (boxH / 2.0f) + 4.0f;
+
+
+    string priceStr = "Price: $" + to_string(node->key);
+    window.draw(makeText(priceStr, 11, sf::Color(255, 215, 0), textStartX, textStartY));
+
+    string orderStr = node->order.getTraderName() + " (Qty: " + to_string(node->order.getQuantity()) + ")";
+    window.draw(makeText(orderStr, 10, sf::Color(220, 220, 220), textStartX, textStartY + 16.0f));
+
+
+    string sizeStr = "SubTree: " + to_string(node->size);
+    window.draw(makeText(sizeStr, 10, sf::Color(100, 160, 255), textStartX, textStartY + 32.0f));
 }

@@ -102,25 +102,7 @@ tradeHistoryOST.insert(node);
 
 void Portfolio :: settleTradeAmounts (string buyerName, string sellerName , int tradePrice, int tradeQty) {
     int tradeAmount = tradePrice * tradeQty ;
-    // CRITICAL ATOMICITY REQUIREMENT : This function MUST complete after matchOrders () , do NOT interleave
-    // CRASH VULNERABILITY : If program crashes between matchOrders () and this function :
-    // - Orders ARE deleted from buyOST / sellOST ( line in matchOrders already executed )
-    // - Traders ’ budgets / inventory NOT updated in portfolioOST ( this function not completed )
-    // - Result : PERMANENT CORRUPTION - orders gone , money not transferred , unreconcilable state
-    // MITIGATION : Keep this sequence atomic at the code level ( no I/O, network , or exception points )
-    // For production : Use database transactions or write - ahead logging for recovery
-    // For this project : Ensure these calls complete sequentially without interruption
-    // RECOVERY STRATEGY (if corruption detected ):
-    // - Compare orderBook ( buyOST + sellOST ) with Portfolio trader counts
-    // - If buyers / sellers exist but money wasn ’t transferred , manually replay settleTradeAmounts
-    // - Log all trades to external file before updating portfolios for audit trail
-    // CLEVER OST PROPERTY : By keying portfolioOST by value and updating the key when
-    // portfolio value changes , traders automatically re - position in wealth rankings
-    // Example : If trader worth $1000 makes a trade and becomes worth $1200 ,
-    // the old node ( key= $1000 ) is deleted and new node (key= $1200 ) is inserted ,
-    // automatically moving trader higher in the rank / percentile ordering
-    // Update buyer : decrease budget , increase inventory
-    // O( log n) search using tradersByName map (was O(n) inorder traversal )
+
     OSTNode * buyerNode = findTrader(buyerName);
     if (buyerNode) {
         int oldValue = buyerNode->key;

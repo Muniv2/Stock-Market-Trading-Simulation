@@ -25,6 +25,10 @@ class GUI {
     private:
         sf::RenderWindow window;
         sf::Font font;
+
+        int treeViewMode = 0;  // 0 = Normal UI, 1 = Sell Tree, 2 = Buy Tree    
+        void drawTreeRecursive(OSTNode* node, float x, float y, float hOffset, sf::Color nodeColor);
+
         OrderBook& orderBook;
         Portfolio& portfolio;
         InputBox nameBox, roleBox, priceBox, qtyBox;
